@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ImageMetaTag.webpage &#8212; ImageMetaTag 0.8.2 documentation</title>
+    <title>ImageMetaTag.webpage &#8212; ImageMetaTag 0.8.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinxdoc.css?v=34905f61" />
-    <script src="../../_static/documentation_options.js?v=dbee5847"></script>
+    <script src="../../_static/documentation_options.js?v=7f96dc5e"></script>
     <script src="../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -22,7 +22,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">ImageMetaTag 0.8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ImageMetaTag 0.8.3 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">ImageMetaTag.webpage</a></li> 
       </ul>
@@ -106,7 +106,10 @@
                     <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keywords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">css</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">load_err_msg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">last_img_in_list_is_slider</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">last_img_still_show</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                    <span class="n">last_img_still_show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">slider_pairs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">slider_pair_show_both</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">slider_default_position</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Writes out an :class:`ImageMetaTag.ImageDict` as a webpage, to a given file location.</span>
 <span class="sd">    The files are created as temporary files and when complete they replace any files that</span>
@@ -160,9 +163,17 @@
 <span class="sd">     * last_img_in_list_is_slider - for the &#39;horiz dropdowns&#39; page style, when the image payload \</span>
 <span class="sd">                                    contains a list of images, then when this is True, the last \</span>
 <span class="sd">                                    images is used as an on overlay/slider on the other images.</span>
+<span class="sd">                                    Cannot be used with slider_pairs.</span>
 <span class="sd">     * last_img_still_show - when last_img_in_list_is_slider applies a set of sliders, this \</span>
 <span class="sd">                             toggles whether or not the last image is still shown, as a static \</span>
 <span class="sd">                             image or not.</span>
+<span class="sd">     * slider_pairs - this is an alternative way of specicifying sliders. The input is a list \</span>
+<span class="sd">                      of pairs (tuples or lists). This way of specifying sliders works well \</span>
+<span class="sd">                      with pages that have a constant number of images when side-by-side images \</span>
+<span class="sd">                      are displayed. Cannot be used with last_img_in_list_is_slider.</span>
+<span class="sd">     * slider_pair_show_both - when slider_pairs is in use, this switch (default=True) controls \</span>
+<span class="sd">                               whether or not the image used as the slider gets shown</span>
+<span class="sd">     * slider_default_position - the default slider position (integer between 1 and 100).</span>
 
 <span class="sd">    Returns a list of files that the the created webpage is dependent upon.</span>
 
@@ -183,13 +194,24 @@
     <span class="n">file_dir</span><span class="p">,</span> <span class="n">file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
     <span class="n">page_dependencies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">last_img_in_list_is_slider</span> <span class="ow">or</span> <span class="n">slider_pairs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">page_uses_slider</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">last_img_in_list_is_slider</span> <span class="ow">and</span> <span class="n">slider_pairs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Inconsistent inputs: cannot use both last_img_in_list_is_slider &#39;</span>
+               <span class="s1">&#39;and slider_pairs to set up image sliders.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">page_uses_slider</span> <span class="o">=</span> <span class="kc">False</span>
+
     <span class="k">if</span> <span class="n">img_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">json_files</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">else</span><span class="p">:</span>
+
+
         <span class="c1"># now make sure the required javascript library is copied over to the file_dir:</span>
         <span class="n">js_css_files</span> <span class="o">=</span> <span class="n">copy_required_js_css_etc</span><span class="p">(</span><span class="n">file_dir</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span>
                                             <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">,</span>
-                                            <span class="n">last_img_in_list_is_slider</span><span class="o">=</span><span class="n">last_img_in_list_is_slider</span><span class="p">)</span>
+                                            <span class="n">page_uses_slider</span><span class="o">=</span><span class="n">page_uses_slider</span><span class="p">)</span>
         <span class="n">page_dependencies</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">js_css_files</span><span class="p">)</span>
 
         <span class="c1"># we have real data to work with:</span>
@@ -354,6 +376,8 @@
                                <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">ind</span><span class="o">=</span><span class="n">ind</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">,</span>
                                <span class="n">last_img_in_list_is_slider</span><span class="o">=</span><span class="n">last_img_in_list_is_slider</span><span class="p">,</span>
                                <span class="n">last_img_still_show</span><span class="o">=</span><span class="n">last_img_still_show</span><span class="p">,</span>
+                               <span class="n">slider_pairs</span><span class="o">=</span><span class="n">slider_pairs</span><span class="p">,</span>
+                               <span class="n">slider_pair_show_both</span><span class="o">=</span><span class="n">slider_pair_show_both</span><span class="p">,</span>
                                <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">keywords</span><span class="o">=</span><span class="n">keywords</span><span class="p">)</span>
         <span class="c1"># now close the script and head:</span>
         <span class="n">ind</span> <span class="o">=</span> <span class="n">_indent_down_one</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
@@ -385,7 +409,8 @@
             <span class="n">write_js_placeholders</span><span class="p">(</span><span class="n">img_dict</span><span class="p">,</span> <span class="n">file_obj</span><span class="o">=</span><span class="n">out_file</span><span class="p">,</span> <span class="n">dict_depth</span><span class="o">=</span><span class="n">img_dict</span><span class="o">.</span><span class="n">dict_depth</span><span class="p">(),</span>
                                   <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">level_names</span><span class="o">=</span><span class="n">level_names</span><span class="p">,</span>
                                   <span class="n">show_singleton_selectors</span><span class="o">=</span><span class="n">show_singleton_selectors</span><span class="p">,</span>
-                                  <span class="n">last_img_in_list_is_slider</span><span class="o">=</span><span class="n">last_img_in_list_is_slider</span><span class="p">,</span>
+                                  <span class="n">page_uses_slider</span><span class="o">=</span><span class="n">page_uses_slider</span><span class="p">,</span>
+                                  <span class="n">slider_default_position</span><span class="o">=</span><span class="n">slider_default_position</span><span class="p">,</span>
                                   <span class="n">animated_level</span><span class="o">=</span><span class="n">anim_level</span><span class="p">,</span> <span class="n">load_err_msg</span><span class="o">=</span><span class="n">load_err_msg</span><span class="p">)</span>
 
         <span class="c1"># the body is done, so the postamble comes in:</span>
@@ -427,6 +452,8 @@
                        <span class="n">ind</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                        <span class="n">last_img_in_list_is_slider</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                        <span class="n">last_img_still_show</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">slider_pairs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">slider_pair_show_both</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                        <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keywords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Writes out the required ImageMetaTag config and data paths into a html header section</span>
@@ -468,6 +495,10 @@
 <span class="sd">                                   in a payload should be used as an overlay/slider</span>
 <span class="sd">    * last_img_still_show - if last_img_in_list_is_slider, then this controls if the last image \</span>
 <span class="sd">                            is shown as a static image or not, at the end.</span>
+<span class="sd">    * slider_pairs - this specifies pairs of sliders directly as a list of pairs (list/tuple) \</span>
+<span class="sd">                     indices. e.g. [(0,1), (0,2)].</span>
+<span class="sd">    * slider_pair_show_both - when using slider_pairs, this controls whether the second part \</span>
+<span class="sd">                              image in the slider is used on its own.</span>
 <span class="sd">    * description - html description metadata7</span>
 <span class="sd">    * keywords - html keyword metadata</span>
 <span class="sd">    &#39;&#39;&#39;</span>
@@ -834,7 +865,8 @@
                           <span class="n">selector_prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                           <span class="n">style</span><span class="o">=</span><span class="s1">&#39;horiz dropdowns&#39;</span><span class="p">,</span> <span class="n">level_names</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                           <span class="n">show_singleton_selectors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                          <span class="n">last_img_in_list_is_slider</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">page_uses_slider</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">slider_default_position</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
                           <span class="n">animated_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load_err_msg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Writes the placeholders into the page body, for the javascript to</span>
@@ -842,7 +874,7 @@
 
 <span class="sd">     * file_obj - an open file object to write to</span>
 <span class="sd">     * dict_dept - the depth of the :class:`ImageMetaTag.ImageDict` \</span>
-<span class="sd">                   being written</span>
+<span class="sd">                   being written.</span>
 <span class="sd">     * selector_prefix - prefix for the variable names of the selectors \</span>
 <span class="sd">                        (these are visible to people viewing the webpage!)</span>
 <span class="sd">     * style - In future, it would be great to write out different types of \</span>
@@ -854,6 +886,9 @@
 <span class="sd">                     the selectors, of length dict_depth.</span>
 <span class="sd">     * animated_level - if supplied, as a string, this will be used to label \</span>
 <span class="sd">                        the animator buttons.</span>
+<span class="sd">     * page_uses_slider - The page uses a slider for multi-image payloads \</span>
+<span class="sd">                          to slide between the current/background image.</span>
+<span class="sd">     * slider_default_position - The default position of the slider.</span>
 <span class="sd">     * load_err_msg - additional message to show after &#39;Please wait while the \</span>
 <span class="sd">                      page is loading&#39;. default is None, but very large pages \</span>
 <span class="sd">                      can crash with Internet Explorer so a message along the \</span>
@@ -943,13 +978,13 @@
 <span class="s1">   &lt;br&gt;</span>
 <span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">anim_label</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">last_img_in_list_is_slider</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">page_uses_slider</span><span class="p">:</span>
             <span class="c1"># adds in the default slider position, if needed:</span>
             <span class="n">file_obj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="s1">   &lt;div id=&#39;slider&#39;&gt;</span>
-<span class="s1">     Default slider position: &lt;input type=&quot;range&quot; min=&quot;1&quot; max=&quot;100&quot; value=&quot;80&quot; class=&quot;slider&quot; id=&quot;slider_default&quot;&gt;</span>
+<span class="s1">     Default slider position: &lt;input type=&quot;range&quot; min=&quot;1&quot; max=&quot;100&quot; value=&quot;</span><span class="si">{}</span><span class="s1">&quot; class=&quot;slider&quot; id=&quot;slider_default&quot;&gt;</span>
 <span class="s1">   &lt;/div&gt;</span>
-<span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+<span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">slider_default_position</span><span class="p">))</span>
 
         <span class="c1"># now add somewhere for the image to go:</span>
         <span class="k">if</span> <span class="n">load_err_msg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -975,7 +1010,7 @@
 <div class="viewcode-block" id="copy_required_js_css_etc">
 <a class="viewcode-back" href="../../webpage.html#ImageMetaTag.webpage.copy_required_js_css_etc">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">copy_required_js_css_etc</span><span class="p">(</span><span class="n">file_dir</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                             <span class="n">last_img_in_list_is_slider</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                             <span class="n">page_uses_slider</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Copies the required javascript library to the directory</span>
 <span class="sd">    containing the required page (file_dir) for a given webpage style.</span>
@@ -1052,7 +1087,7 @@
         <span class="c1"># finally, make a note:</span>
         <span class="n">js_css_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">js_to_copy</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">last_img_in_list_is_slider</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">page_uses_slider</span><span class="p">:</span>
         <span class="n">files_to_copy</span> <span class="o">=</span> <span class="p">[</span><span class="n">IMG_COMP_STYLE</span><span class="p">,</span> <span class="n">IMG_COMP_JS_FILE</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">js_to_copy</span> <span class="ow">in</span> <span class="n">files_to_copy</span><span class="p">:</span>
 
@@ -1159,7 +1194,7 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">ImageMetaTag 0.8.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ImageMetaTag 0.8.3 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">ImageMetaTag.webpage</a></li> 
       </ul>

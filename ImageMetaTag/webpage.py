@@ -68,7 +68,10 @@ def write_full_page(img_dict, filepath, title, page_filename=None, tab_s_name=No
                     description=None, keywords=None, css=None,
                     load_err_msg=None,
                     last_img_in_list_is_slider=False,
-                    last_img_still_show=False):
+                    last_img_still_show=False,
+                    slider_pairs=None,
+                    slider_pair_show_both=True,
+                    slider_default_position=80):
     '''
     Writes out an :class:`ImageMetaTag.ImageDict` as a webpage, to a given file location.
     The files are created as temporary files and when complete they replace any files that
@@ -122,9 +125,17 @@ def write_full_page(img_dict, filepath, title, page_filename=None, tab_s_name=No
      * last_img_in_list_is_slider - for the 'horiz dropdowns' page style, when the image payload \
                                     contains a list of images, then when this is True, the last \
                                     images is used as an on overlay/slider on the other images.
+                                    Cannot be used with slider_pairs.
      * last_img_still_show - when last_img_in_list_is_slider applies a set of sliders, this \
                              toggles whether or not the last image is still shown, as a static \
                              image or not.
+     * slider_pairs - this is an alternative way of specicifying sliders. The input is a list \
+                      of pairs (tuples or lists). This way of specifying sliders works well \
+                      with pages that have a constant number of images when side-by-side images \
+                      are displayed. Cannot be used with last_img_in_list_is_slider.
+     * slider_pair_show_both - when slider_pairs is in use, this switch (default=True) controls \
+                               whether or not the image used as the slider gets shown
+     * slider_default_position - the default slider position (integer between 1 and 100).
 
     Returns a list of files that the the created webpage is dependent upon.
 
@@ -145,13 +156,24 @@ def write_full_page(img_dict, filepath, title, page_filename=None, tab_s_name=No
     file_dir, file_name = os.path.split(filepath)
     page_dependencies.append(file_name)
 
+    if last_img_in_list_is_slider or slider_pairs is not None:
+        page_uses_slider = True
+    elif last_img_in_list_is_slider and slider_pairs is not None:
+        msg = ('Inconsistent inputs: cannot use both last_img_in_list_is_slider '
+               'and slider_pairs to set up image sliders.')
+        raise ValueError(msg)
+    else:
+        page_uses_slider = False
+
     if img_dict is None:
         json_files = []
     else:
+
+
         # now make sure the required javascript library is copied over to the file_dir:
         js_css_files = copy_required_js_css_etc(file_dir, style,
                                             compression=compression,
-                                            last_img_in_list_is_slider=last_img_in_list_is_slider)
+                                            page_uses_slider=page_uses_slider)
         page_dependencies.extend(js_css_files)
 
         # we have real data to work with:
@@ -316,6 +338,8 @@ def write_full_page(img_dict, filepath, title, page_filename=None, tab_s_name=No
                                style=style, ind=ind, compression=compression,
                                last_img_in_list_is_slider=last_img_in_list_is_slider,
                                last_img_still_show=last_img_still_show,
+                               slider_pairs=slider_pairs,
+                               slider_pair_show_both=slider_pair_show_both,
                                description=description, keywords=keywords)
         # now close the script and head:
         ind = _indent_down_one(ind)
@@ -347,7 +371,8 @@ def write_full_page(img_dict, filepath, title, page_filename=None, tab_s_name=No
             write_js_placeholders(img_dict, file_obj=out_file, dict_depth=img_dict.dict_depth(),
                                   style=style, level_names=level_names,
                                   show_singleton_selectors=show_singleton_selectors,
-                                  last_img_in_list_is_slider=last_img_in_list_is_slider,
+                                  page_uses_slider=page_uses_slider,
+                                  slider_default_position=slider_default_position,
                                   animated_level=anim_level, load_err_msg=load_err_msg)
 
         # the body is done, so the postamble comes in:
@@ -386,6 +411,8 @@ def write_js_to_header(img_dict, initial_selectors=None, optgroups=None, style=N
                        ind=None, compression=False,
                        last_img_in_list_is_slider=False,
                        last_img_still_show=False,
+                       slider_pairs=None,
+                       slider_pair_show_both=True,
                        description=None, keywords=None):
     '''
     Writes out the required ImageMetaTag config and data paths into a html header section
@@ -427,6 +454,10 @@ def write_js_to_header(img_dict, initial_selectors=None, optgroups=None, style=N
                                    in a payload should be used as an overlay/slider
     * last_img_still_show - if last_img_in_list_is_slider, then this controls if the last image \
                             is shown as a static image or not, at the end.
+    * slider_pairs - this specifies pairs of sliders directly as a list of pairs (list/tuple) \
+                     indices. e.g. [(0,1), (0,2)].
+    * slider_pair_show_both - when using slider_pairs, this controls whether the second part \
+                              image in the slider is used on its own.
     * description - html description metadata7
     * keywords - html keyword metadata
     '''
@@ -787,7 +818,8 @@ def write_js_placeholders(img_dict, file_obj=None, dict_depth=None,
                           selector_prefix=None,
                           style='horiz dropdowns', level_names=False,
                           show_singleton_selectors=True,
-                          last_img_in_list_is_slider=False,
+                          page_uses_slider=False,
+                          slider_default_position=80,
                           animated_level=None, load_err_msg=None):
     '''
     Writes the placeholders into the page body, for the javascript to
@@ -795,7 +827,7 @@ def write_js_placeholders(img_dict, file_obj=None, dict_depth=None,
 
      * file_obj - an open file object to write to
      * dict_dept - the depth of the :class:`ImageMetaTag.ImageDict` \
-                   being written
+                   being written.
      * selector_prefix - prefix for the variable names of the selectors \
                         (these are visible to people viewing the webpage!)
      * style - In future, it would be great to write out different types of \
@@ -807,6 +839,9 @@ def write_js_placeholders(img_dict, file_obj=None, dict_depth=None,
                      the selectors, of length dict_depth.
      * animated_level - if supplied, as a string, this will be used to label \
                         the animator buttons.
+     * page_uses_slider - The page uses a slider for multi-image payloads \
+                          to slide between the current/background image.
+     * slider_default_position - The default position of the slider.
      * load_err_msg - additional message to show after 'Please wait while the \
                       page is loading'. default is None, but very large pages \
                       can crash with Internet Explorer so a message along the \
@@ -896,13 +931,13 @@ def write_js_placeholders(img_dict, file_obj=None, dict_depth=None,
    <br>
 '''.format(anim_label))
 
-        if last_img_in_list_is_slider:
+        if page_uses_slider:
             # adds in the default slider position, if needed:
             file_obj.write('''
    <div id='slider'>
-     Default slider position: <input type="range" min="1" max="100" value="80" class="slider" id="slider_default">
+     Default slider position: <input type="range" min="1" max="100" value="{}" class="slider" id="slider_default">
    </div>
-''')
+'''.format(slider_default_position))
 
         # now add somewhere for the image to go:
         if load_err_msg is None:
@@ -925,7 +960,7 @@ def write_js_placeholders(img_dict, file_obj=None, dict_depth=None,
         raise ValueError('"%s" tyle of content placeholder not defined' % style)
 
 def copy_required_js_css_etc(file_dir, style, compression=False,
-                             last_img_in_list_is_slider=False, overwrite=True):
+                             page_uses_slider=False, overwrite=True):
     '''
     Copies the required javascript library to the directory
     containing the required page (file_dir) for a given webpage style.
@@ -1002,7 +1037,7 @@ not being overwritten. Your webpage may be broken!'''.format(file_dir, imt_js_to
         # finally, make a note:
         js_css_files.append(js_to_copy)
 
-    if last_img_in_list_is_slider:
+    if page_uses_slider:
         files_to_copy = [IMG_COMP_STYLE, IMG_COMP_JS_FILE]
         for js_to_copy in files_to_copy:
 
