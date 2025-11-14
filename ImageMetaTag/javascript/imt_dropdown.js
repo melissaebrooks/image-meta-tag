@@ -217,21 +217,31 @@ function apply_selection (start_depth, only_cache) {
 function apply_payload( payload ) {
     // applies the payload of the selected image(s) to the_image:
     // set the string to use the the_image div:
+    //
+    // slider_mode controls how multi images are displayed
+    //  0 : no sliders, display all images side by side
+    //  1 : the last image is used as a slider underlay (good for when
+    //      the final image is a map froim observations) as well as being
+    //      shown
+    //  2 : as 1, but the last image is not shown.
+    //  3 : 
     var the_file = "<p>Sorry, there is no image for that selection.</p>";
     // set the file, and break the loop:
     if (Array.isArray(payload)){
 	// how many images we have depends on what the last image is used for:
-	if (last_img_slider && payload.length > 1){
-            if (!last_img_still_show){
+	if (slider_mode > 0 && payload.length > 1){
+            if (slider_mode == 1){
+		// the last image is a slider underlay, but we want to show it:
+		var n_imgs = payload.length;
+		var this_img_slider = Array(n_imgs).fill(true);
+		this_img_slider[n_imgs-1] = false
+	    } else if (slider_mode == 2) {
    		// if the last image is a slider then it won't be used as an
 		// image directly, so doesn't count:
       		var n_imgs = payload.length - 1;
 		var this_img_slider = Array(n_imgs).fill(true);
 	    } else {
-		// the last image is a slider underlay, but we want to show it:
-		var n_imgs = payload.length;
-		var this_img_slider = Array(n_imgs).fill(true);
-		this_img_slider[n_imgs-1] = false
+		console.log('need to do this bit')
 	    }
     	    var slider_background = payload[payload.length - 1];
        	} else {

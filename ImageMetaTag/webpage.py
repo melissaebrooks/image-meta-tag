@@ -492,16 +492,31 @@ def write_js_to_header(img_dict, initial_selectors=None, optgroups=None, style=N
         file_obj.write(ind + '<script type="text/javascript">\n')
         ind = _indent_up_one(ind)
         # define, read in and parse the json file:
+
+        if not last_img_in_list_is_slider and slider_pairs is None:
+            slider_mode = 0
+        elif last_img_in_list_is_slider:
+            if last_img_still_show:
+                slider_mode = 1
+            else:
+                slider_mode = 2
+        elif slider_pairs is not None:
+            if slider_pair_show_both:
+                slider_mode = 3
+            else:
+                slider_mode = 4
+        else:
+            raise ValueError('unrecognised combination of slider settings')
+
+
         out_str = '''{0}var json_files = {1};
 {0}var zl_unpack = {2};
-{0}var last_img_slider = {3};
-{0}var last_img_still_show = {4};
+{0}var slider_mode = {3};
 {0}imt = read_parse_json_files(json_files, zl_unpack);
 '''
         file_obj.write(out_str.format(ind, json_files,
                                       _py_to_js_bool(bool(compression)),
-                                      _py_to_js_bool(bool(last_img_in_list_is_slider)),
-                                      _py_to_js_bool(bool(last_img_still_show)),
+                                      str(slider_mode),
                        ))
 
         # in case the page we are writing is embedded as a frame, write out the top

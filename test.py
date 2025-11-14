@@ -1266,6 +1266,7 @@ def __main__():
                                                               postamble=webpage_postamble,
                                                               postamble_no_imt_link=True,
                                                               last_img_in_list_is_slider=True,
+                                                              last_img_still_show=True,
                                                               slider_default_position=80,
                                                               verbose=True, url_type='str')
         web_out[out_page_css] = imt.webpage.write_full_page(img_dict_multi, out_page_css,
@@ -1275,8 +1276,7 @@ def __main__():
                                                             verbose=True, only_show_rel_url=True,
                                                             show_selector_names=True,
                                                             slider_pairs=[(0,1), (0, 2)],
-                                                            last_img_in_list_is_slider=True,
-                                                            last_img_still_show=True,
+                                                            slider_pair_show_both=True,
                                                             slider_default_position=100,
                                                             show_singleton_selectors=False,
                                                             compression=test_zlib_compression,
