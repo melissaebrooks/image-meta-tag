@@ -495,16 +495,20 @@ def write_js_to_header(img_dict, initial_selectors=None, optgroups=None, style=N
 
         if not last_img_in_list_is_slider and slider_pairs is None:
             slider_mode = 0
+            slider_pairs_str = '[]'
         elif last_img_in_list_is_slider:
             if last_img_still_show:
                 slider_mode = 1
+                slider_pairs_str = '[]'
             else:
                 slider_mode = 2
+                slider_pairs_str = '[]'
         elif slider_pairs is not None:
             if slider_pair_show_both:
                 slider_mode = 3
             else:
                 slider_mode = 4
+            slider_pairs_str = _make_slider_pair_str(slider_pairs)
         else:
             raise ValueError('unrecognised combination of slider settings')
 
@@ -512,11 +516,13 @@ def write_js_to_header(img_dict, initial_selectors=None, optgroups=None, style=N
         out_str = '''{0}var json_files = {1};
 {0}var zl_unpack = {2};
 {0}var slider_mode = {3};
+{0}var slider_pairs = {4};
 {0}imt = read_parse_json_files(json_files, zl_unpack);
 '''
         file_obj.write(out_str.format(ind, json_files,
                                       _py_to_js_bool(bool(compression)),
                                       str(slider_mode),
+                                      slider_pairs_str,
                        ))
 
         # in case the page we are writing is embedded as a frame, write out the top
@@ -1124,3 +1130,17 @@ def _py_to_js_bool(py_bool):
     elif py_bool is False:
         return 'false'
     raise ValueError('input to _py_to_js_bool is not a boolean, it is: %s' % py_bool)
+
+def _make_slider_pair_str(slider_pairs):
+    'makes a string that represents the slider pairs as a list of lists in javascript'
+    out_str = '['
+    for i_pair, slider_pair in enumerate(slider_pairs):
+        if i_pair > 0:
+            out_str += ', '
+        if not isinstance(slider_pair, (tuple, list)):
+            raise ValueError('slider_pairs must be a list of lists or tuples')
+        if len(slider_pair) != 2:
+            raise ValueError('slider_pairs must have length 2')
+        out_str += '[{},{}]'.format(slider_pair[0], slider_pair[1])
+    out_str += ']'
+    return out_str

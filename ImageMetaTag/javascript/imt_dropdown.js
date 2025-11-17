@@ -233,23 +233,69 @@ function apply_payload( payload ) {
             if (slider_mode == 1){
 		// the last image is a slider underlay, but we want to show it:
 		var n_imgs = payload.length;
-		var this_img_slider = Array(n_imgs).fill(true);
+		var this_img_slider = Array(n_imgs).fill(payload[n_imgs - 1]);
 		this_img_slider[n_imgs-1] = false
+		var payload_use = Array.from(payload);
 	    } else if (slider_mode == 2) {
    		// if the last image is a slider then it won't be used as an
 		// image directly, so doesn't count:
       		var n_imgs = payload.length - 1;
-		var this_img_slider = Array(n_imgs).fill(true);
-	    } else {
-		console.log('need to do this bit')
+		var this_img_slider = Array(n_imgs).fill(payload[n_imgs]);
+		var payload_use = Array.from(payload);
+	    } else if (slider_mode == 3) {
+		// we can have independent slider pairs, and the background
+		// images for the sliders are also shown.
+    		var n_imgs = payload.length;
+    		var this_img_slider = Array(n_imgs).fill(false);
+		const payload_use = Array.from(payload);
+		for (var i_pair=0; i_pair < slider_pairs.length; i_pair++){
+		    this_img_slider[slider_pairs[i_pair][0]] = payload[slider_pairs[i_pair][1]];
+		}
+	    } else if (slider_mode == 4) {
+		// we can have independent slider pairs, and the background
+		// images for the sliders are NOT shown.
+		//
+		// first check what images are to be shown and which are just
+		// backgounds for sliders
+		var this_img_slider_ref_to_payload = Array(payload.length).fill(false);
+		var img_show = Array(payload.length).fill(true);
+		for (var i_img=0; i_img < payload.length; i_img++){
+		    // does this image get used as a slider fore ro background
+		    // in any sliders:
+		    var img_is_slider_f = false;
+		    var img_is_slider_b = false;
+		    var tmp_slider_img = '';
+		    for (var i_pair=0; i_pair < slider_pairs.length; i_pair++){
+			if (slider_pairs[i_pair][0] == i_img){
+			    img_is_slider_f = true;
+			    this_img_slider_ref_to_payload[i_img] = payload[slider_pairs[i_pair][1]];
+			}
+			if (slider_pairs[i_pair][1] == i_img){
+			    img_is_slider_b = true;
+			}   
+		    }
+		    if (img_is_slider_b && !(img_is_slider_f)){
+			img_show[i_img] = false;
+		    }
+		}
+		// now loop again and construct the payload_use
+		var payload_use = [];
+		var this_img_slider = [];
+		var n_imgs = 0;
+		for (var i_img=0; i_img < payload.length; i_img++){
+		    if (img_show[i_img]){
+			n_imgs++
+			payload_use.push(payload[i_img]);
+			this_img_slider.push(this_img_slider_ref_to_payload[i_img]);
+		    }
+		}
 	    }
-    	    var slider_background = payload[payload.length - 1];
        	} else {
 	    // no sliders so show all the images
     	    var n_imgs = payload.length;
     	    var this_img_slider = Array(n_imgs).fill(false);
+	    const payload_use = Array.from(payload);
     	}
-
 	// the right number of rows for a squarish box is the floor of the square root of the number of images:
         if (n_imgs <= 3){
             var n_cols = n_imgs;
@@ -265,10 +311,10 @@ function apply_payload( payload ) {
         the_file = "<p><table cellspacing=2>";
         for (var i_img=0; i_img < n_imgs; i_img++){
             if (i_img % n_cols == 0){ the_file += "<tr>"}
-	    if (this_img_slider[i_img]){
-		    the_file += "<td>" + apply_slider(payload[i_img], slider_background, i_img) + "</td>";
+	    if (typeof this_img_slider[i_img] == 'string'){
+		    the_file += "<td>" + apply_slider(payload_use[i_img], this_img_slider[i_img], i_img) + "</td>";
 		} else {
-		    the_file += "<td><img src=" + payload[i_img] + "></td>";
+		    the_file += "<td><img src=" + payload_use[i_img] + "></td>";
 		}
         }
         the_file += "</table></p>";
