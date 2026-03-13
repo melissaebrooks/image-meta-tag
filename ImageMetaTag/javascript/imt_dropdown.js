@@ -224,7 +224,7 @@ function apply_payload( payload ) {
     //      the final image is a map froim observations) as well as being
     //      shown
     //  2 : as 1, but the last image is not shown.
-    //  3 : 
+    //  3 : we have indpendent sliders set by the slider pair inputs
     var the_file = "<p>Sorry, there is no image for that selection.</p>";
     // set the file, and break the loop:
     if (Array.isArray(payload)){
@@ -247,7 +247,7 @@ function apply_payload( payload ) {
 		// images for the sliders are also shown.
     		var n_imgs = payload.length;
     		var this_img_slider = Array(n_imgs).fill(false);
-		const payload_use = Array.from(payload);
+		var payload_use = Array.from(payload);
 		for (var i_pair=0; i_pair < slider_pairs.length; i_pair++){
 		    this_img_slider[slider_pairs[i_pair][0]] = payload[slider_pairs[i_pair][1]];
 		}

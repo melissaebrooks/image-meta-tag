@@ -1276,7 +1276,7 @@ def __main__():
                                                             verbose=True, only_show_rel_url=True,
                                                             show_selector_names=True,
                                                             slider_pairs=[(0,1), (2, 3)],
-                                                            slider_pair_show_both=False,
+                                                            slider_pair_show_both=True,
                                                             slider_default_position=50,
                                                             show_singleton_selectors=False,
                                                             compression=test_zlib_compression,
